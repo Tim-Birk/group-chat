@@ -1,3 +1,4 @@
+const axios = require('axios');
 /** Functionality related to chatting. */
 
 // Room is an abstraction of a chat channel
@@ -33,7 +34,7 @@ class ChatUser {
     this.room.join(this);
     this.room.broadcast({
       type: 'note',
-      text: `${this.name} joined "${this.room.name}".`
+      text: `${this.name} joined "${this.room.name}".`,
     });
   }
 
@@ -43,7 +44,23 @@ class ChatUser {
     this.room.broadcast({
       name: this.name,
       type: 'chat',
-      text: text
+      text: text,
+    });
+  }
+
+  /** handle a joke: display a joke to current user only. */
+
+  async handleJoke() {
+    const resp = await axios.get('https://icanhazdadjoke.com/', {
+      headers: { accept: 'application/json' },
+    });
+    const text = resp.data.joke;
+    if (!text) {
+      throw new Error(`Joke not found`);
+    }
+    this.room.broadcastCurrentUser(this, {
+      type: 'joke',
+      text,
     });
   }
 
@@ -58,6 +75,7 @@ class ChatUser {
 
     if (msg.type === 'join') this.handleJoin(msg.name);
     else if (msg.type === 'chat') this.handleChat(msg.text);
+    else if (msg.type === 'joke') this.handleJoke();
     else throw new Error(`bad message: ${msg.type}`);
   }
 
@@ -67,7 +85,7 @@ class ChatUser {
     this.room.leave(this);
     this.room.broadcast({
       type: 'note',
-      text: `${this.name} left ${this.room.name}.`
+      text: `${this.name} left ${this.room.name}.`,
     });
   }
 }

@@ -51,6 +51,12 @@ class Room {
       member.send(JSON.stringify(data));
     }
   }
+
+  /** send message to only current user. */
+
+  broadcastCurrentUser(member, data) {
+    member.send(JSON.stringify(data));
+  }
 }
 
 module.exports = Room;
